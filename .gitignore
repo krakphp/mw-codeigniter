@@ -1,0 +1,4 @@
+/test/functional/ci2
+/test/functional/ci3
+/vendor/
+/composer.lock
