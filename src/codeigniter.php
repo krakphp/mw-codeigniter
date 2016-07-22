@@ -6,7 +6,7 @@ use Krak\Mw,
     Psr\Http\Message\ServerRequestInterface;
 
 function injectCIMw($ci, $param_name = 'ci') {
-    return function(ServerRequestInterface $req, $next) use ($param_name){
+    return function(ServerRequestInterface $req, $next) use ($ci, $param_name){
         return $next($req->withAttribute($param_name, $ci));
     };
 }
