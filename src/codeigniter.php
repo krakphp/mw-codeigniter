@@ -11,9 +11,19 @@ function injectCIMw($ci, $param_name = 'ci') {
     };
 }
 
-function catchExceptionMw() {
-    return Mw\catchException(function($req, $e) {
-        show_error($e->getMessage());
+function catchExceptionMw($show_stack_trace = true) {
+    return Mw\catchException(function($req, $e) use ($show_stack_trace) {
+        if (!$show_stack_trace) {
+            return show_error('');
+        }
+
+        $html = <<<HTML
+%s <br/>
+<pre>
+%s
+</pre>
+HTML;
+        return show_error(sprintf($html, $e->getMessage(), $e));
     });
 }
 
@@ -24,10 +34,10 @@ function show404Mw() {
 }
 
 /** middleware for wrapping the CI exception catching and 404 handling */
-function embeddedCIMw($mw) {
+function embeddedCIMw($mw, $show_stack_trace = true) {
     $mw = is_array($mw) ? mw\compose($mw) : $mw;
     return mw\compose([
-        catchExceptionMw(),
+        catchExceptionMw($show_stack_trace),
         $mw,
         show404Mw()
     ]);
