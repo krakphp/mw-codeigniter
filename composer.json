@@ -9,13 +9,12 @@
             "email": "rj@bighead.net"
         }
     ],
-    "require-dev": {
-        "krak/mw": "^0.1.0",
-        "zendframework/zend-diactoros": "^1.3"
+    "require": {
+        "krak/mw-http": "^0.2.2"
     },
     "autoload": {
         "psr-4": {
-            "Krak\\Mw\\CodeIgniter\\": "src"
+            "Krak\\Mw\\Http\\Package\\CodeIgniter\\": "src"
         },
         "files": ["src/codeigniter.php"]
     }

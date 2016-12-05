@@ -1,64 +1,46 @@
 <?php
 
-namespace Krak\Mw\CodeIgniter;
-
-use Krak\Mw,
-    Psr\Http\Message\ServerRequestInterface;
-
-function injectCIMw($ci, $param_name = 'ci') {
-    return function(ServerRequestInterface $req, $next) use ($ci, $param_name){
-        return $next($req->withAttribute($param_name, $ci));
-    };
+namespace Krak\Mw\Http\Package {
+    function codeIgniter($ci, array $config = []) {
+        return new CodeIgniter\CodeIgniterPackage($ci, $config);
+    }
 }
 
-function catchExceptionMw($show_stack_trace = true) {
-    return Mw\catchException(function($req, $e) use ($show_stack_trace) {
-        if (!$show_stack_trace) {
-            return show_error('');
-        }
+namespace Krak\Mw\Http\Package\CodeIgniter {
+    use Krak\Mw\Http;
 
-        $html = <<<HTML
+    function ciExceptionHandler($show_stack_trace = true) {
+        return function($req, $e) use ($show_stack_trace) {
+            if (!$show_stack_trace) {
+                return show_error($e->getMessage());
+            }
+
+            $html = <<<HTML
 %s <br/>
-<pre>
+
+<code>
 %s
-</pre>
+</code>
 HTML;
-        return show_error(sprintf($html, $e->getMessage(), $e));
-    });
-}
+            return show_error(sprintf($html, $e->getMessage(), nl2br($e)));
+        };
+    }
 
-function show404Mw() {
-    return function(ServerRequestInterface $req, $next) {
-        show_404();
-    };
-}
+    function ciNotFoundHandler() {
+        return function($req, $res) {
+            show_404();
+        };
+    }
 
-/** middleware for wrapping the CI exception catching and 404 handling */
-function embeddedCIMw($mw, $show_stack_trace = true) {
-    $mw = is_array($mw) ? mw\compose($mw) : $mw;
-    return mw\compose([
-        catchExceptionMw($show_stack_trace),
-        $mw,
-        show404Mw()
-    ]);
-}
+    /** creates a view marshalResponse for the routing component marshal responses */
+    function ciViewMarshalResponse($ci) {
+        return function($res, $rf, $req, $next) use ($ci) {
+            if (!Http\Util\isTuple($res, 'string', 'array')) {
+                return $next($res, $rf, $req);
+            }
 
-/** creates a handle error for the mw-routing component */
-function routingHandleError() {
-    return function($tup) {
-        show_404();
-    };
-}
-
-/** creates a view marshalResponse for the routing component marshal responses */
-function viewMarshalResponse($rf, $ci = null, $param_name = 'ci') {
-    return function($tup, $req) use ($rf, $ci, $param_name) {
-        $ci = $ci ?: $req->getAttribute($param_name);
-        if (!$ci) {
-            throw new \RuntimeException('CI instance not found to marshal view response');
-        }
-
-        list($view_path, $view_data) = $tup;
-        return $rf(200, [], $ci->load->view($view_path, $view_data, true));
-    };
+            list($view_path, $view_data) = $res;
+            return $rf(200, [], $ci->load->view($view_path, $view_data, true));
+        };
+    }
 }

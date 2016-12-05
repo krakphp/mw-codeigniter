@@ -1,6 +1,6 @@
 <?php
 
-namespace Krak\Mw\CodeIgniter;
+namespace Krak\Mw\Http\Package\CodeIgniter;
 
 use Zend\Diactoros,
     Psr\Http\Message\ResponseInterface;
